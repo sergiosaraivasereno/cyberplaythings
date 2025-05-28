@@ -1,0 +1,45 @@
+<a href="perfil.html" id="iconePerfil" style="
+  position: fixed;
+  top: 25px;
+  right: 110px;
+  font-size: 16px;
+  background: #1a1a1a00;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 10px;
+  z-index: 9999;
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: auto;
+">
+  👤 <span id="nomeUsuarioPerfil">Entrar</span>
+</a>
+
+<script type="module">
+  import { app } from "../js/firebase-config.js";
+  import {
+    getAuth, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc
+  } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  onAuthStateChanged(auth, async (user) => {
+    const span = document.getElementById("nomeUsuarioPerfil");
+    if (user && span) {
+      const ref = doc(db, "usuarios", user.uid);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const dados = snap.data();
+        const nomeUsuario = dados.nomeUsuario || user.email;
+        span.textContent = nomeUsuario;
+      }
+    }
+  });
+</script>

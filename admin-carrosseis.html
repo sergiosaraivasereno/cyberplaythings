@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Carrosséis</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #4db8ff;
+    }
+
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 0 10px rgba(0, 191, 255, 0.4);
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 15px;
+      display: block;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: none;
+    }
+
+    button {
+      background: #4db8ff;
+      color: black;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #00bcd4;
+    }
+
+    .carrosseis {
+      max-width: 800px;
+      margin: 50px auto 0;
+      display: grid;
+      gap: 20px;
+    }
+
+    .carrossel {
+      background: #1f1f1f;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0, 191, 255, 0.2);
+    }
+
+    .carrossel strong {
+      color: #4db8ff;
+      font-size: 18px;
+    }
+
+    .carrossel small {
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧲 Gerenciar Carrosséis</h1>
+
+  <form id="form-carrossel">
+    <label>Nome do Carrossel:</label>
+    <input type="text" name="nome" required>
+
+    <label>Tag dos Produtos:</label>
+    <input type="text" name="tag" placeholder="Ex: rosa, hatsune, figure" required>
+
+    <label>Posição na Página:</label>
+    <select name="posicao" required>
+      <option value="">Selecione</option>
+      <option value="topo">Topo</option>
+      <option value="meio">Meio</option>
+      <option value="rodape">Rodapé</option>
+    </select>
+
+    <button type="submit">Salvar Carrossel</button>
+  </form>
+
+  <section class="carrosseis" id="lista-carrosseis">
+    <!-- Carrosséis cadastrados -->
+  </section>
+
+  <script type="module">
+    import { app } from "./js/firebase-config.js";
+    import {
+      getFirestore, collection, addDoc, getDocs
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const form = document.getElementById("form-carrossel");
+    const lista = document.getElementById("lista-carrosseis");
+
+    onAuthStateChanged(auth, async (usuario) => {
+      if (!usuario || usuario.email !== "sergiosaraivasereno@gmail.com") {
+        alert("Acesso negado. Apenas o administrador pode acessar esta página.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      carregarCarrosseis();
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const carrossel = {
+        nome: form.nome.value,
+        tag: form.tag.value.toLowerCase(),
+        posicao: form.posicao.value,
+        criadoEm: new Date().toISOString()
+      };
+
+      try {
+        await addDoc(collection(db, "carrosseis"), carrossel);
+        alert("✅ Carrossel salvo com sucesso!");
+        form.reset();
+        carregarCarrosseis();
+      } catch (erro) {
+        console.error("Erro:", erro);
+        alert("❌ Falha ao salvar carrossel.");
+      }
+    });
+
+    async function carregarCarrosseis() {
+      lista.innerHTML = "";
+      const snap = await getDocs(collection(db, "carrosseis"));
+
+      snap.forEach(doc => {
+        const c = doc.data();
+        const div = document.createElement("div");
+        div.className = "carrossel";
+        div.innerHTML = `
+          <strong>${c.nome}</strong><br>
+          Tag: <code>${c.tag}</code><br>
+          <small>📍 ${c.posicao}</small>
+        `;
+        lista.appendChild(div);
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cadastro - CyberPlayThings</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #ff85c1;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 10px;
+      margin: 8px 0;
+      width: 100%;
+      max-width: 300px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #ff85c1;
+      border: none;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .msg {
+      margin-top: 15px;
+      color: #80ffcc;
+      text-align: center;
+    }
+
+    a {
+      color: #80d8ff;
+      text-decoration: none;
+      margin-top: 10px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎉 Criar Conta</h1>
+
+  <input type="text" id="nomeUsuario" placeholder="Nome de usuário" required />
+  <input type="email" id="email" placeholder="Seu e-mail" required />
+  <input type="password" id="senha" placeholder="Senha" required />
+  <input type="password" id="confirmarSenha" placeholder="Confirmar senha" required />
+  <button onclick="criarConta()">Cadastrar</button>
+
+  <a href="login.html">Já tenho uma conta</a>
+  <div class="msg" id="mensagem"></div>
+
+  <script type="module">
+    import { app } from './js/firebase-config.js';
+    import {
+      getAuth, createUserWithEmailAndPassword, sendEmailVerification
+    } from 'https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js';
+    import {
+      getFirestore, doc, setDoc
+    } from 'https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js';
+
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    async function criarConta() {
+      const nome = document.getElementById("nomeUsuario").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("senha").value;
+      const confirmar = document.getElementById("confirmarSenha").value;
+      const msg = document.getElementById("mensagem");
+
+      if (!nome || !email || !senha || !confirmar) {
+        msg.textContent = "Preencha todos os campos!";
+        return;
+      }
+
+      if (senha !== confirmar) {
+        msg.textContent = "As senhas não coincidem.";
+        return;
+      }
+
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, senha);
+        const user = userCred.user;
+
+        // Salva nome de usuário no Firestore
+        await setDoc(doc(db, "usuarios", user.uid), {
+          nomeUsuario: nome,
+          email: email
+        });
+
+        await sendEmailVerification(user);
+
+        msg.textContent = "Conta criada! Verifique seu e-mail antes de fazer login.";
+      } catch (error) {
+        msg.textContent = "Erro: " + error.message;
+      }
+    }
+  </script>
+</body>
+</html>

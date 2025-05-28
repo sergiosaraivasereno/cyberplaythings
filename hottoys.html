@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Hot Toys - CyberPlayThings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/hottoys.css" />
+  <link rel="stylesheet" href="css/menu.css" />
+  <link rel="stylesheet" href="css/botoes.css" />
+  <style>
+    .overlay-mais18 {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      backdrop-filter: blur(10px);
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 5000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .caixa-aviso {
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 16px;
+      text-align: center;
+      color: white;
+      max-width: 360px;
+      box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+    }
+
+    .caixa-aviso h2 {
+      margin-bottom: 10px;
+      font-size: 24px;
+      color: #ff69b4;
+    }
+
+    .caixa-aviso p {
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .botoes-aviso button {
+      background-color: #ff69b4;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      margin: 5px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    .botoes-aviso button:hover {
+      background-color: #ff85c1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AVISO +18 COM BLUR -->
+  <div id="aviso18" class="overlay-mais18">
+    <div class="caixa-aviso">
+      <h2>🔞 Conteúdo para Maiores</h2>
+      <p>Esta seção contém produtos voltados ao público adulto. Você confirma que tem 18 anos ou mais?</p>
+      <div class="botoes-aviso">
+        <button onclick="location.href='index.html'">Voltar</button>
+        <button onclick="fecharAviso18()">Tenho 18+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENU LATERAL -->
+  <nav class="menu-opcoes" id="menuLateral">
+    <a href="index.html">🏠 Início</a>
+    <a href="pelucias.html">🧸 Pelúcias</a>
+    <a href="figures.html">🎎 Figures</a>
+    <a href="tech.html">🖥️ Tech</a>
+    <a href="hottoys.html">🔥 Hot Toys</a>
+    <a href="cosplay.html">🎭 Cosplay</a>
+    <a href="carrinho.html">🛒 Carrinho</a>
+    <a href="login.html">👤 Perfil</a>
+  </nav>
+
+  <!-- BOTÃO MENU -->
+  <button id="menuToggle" aria-label="Abrir menu" title="Menu">☰</button>
+
+  <!-- HEADER E BOTÕES -->
+  <div id="botaoCarrinho"></div>
+  <div id="botao-perfil"></div>
+  <div id="topoSite"></div>
+
+  <script>
+    fetch("components/botao-carrinho.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("botaoCarrinho").innerHTML = html;
+      });
+
+    fetch("components/botao-perfil.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("botao-perfil").innerHTML = html;
+      });
+
+    fetch("components/header.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("topoSite").innerHTML = html;
+      });
+  </script>
+
+  <!-- CONTEÚDO -->
+  <main class="conteudo" id="conteudoSite">
+    <button class="btn-back" onclick="history.back()">← Voltar</button>
+    <h1 style="text-align:center;">🔥 Hot Toys - Exclusivos para Maiores de 18</h1>
+    <div class="produtos-container" id="produtosContainer"></div>
+  </main>
+
+  <!-- SCRIPT MENU -->
+  <script>
+    const menuToggle = document.getElementById("menuToggle");
+    const menuLateral = document.getElementById("menuLateral");
+    const conteudo = document.getElementById("conteudoSite");
+
+    let menuAberto = false;
+
+    menuToggle.addEventListener("click", () => {
+      menuAberto = !menuAberto;
+      menuLateral.classList.toggle("mostrar", menuAberto);
+      menuToggle.innerHTML = menuAberto ? "✖" : "☰";
+      conteudo.style.filter = menuAberto ? "blur(2px)" : "none";
+      menuToggle.style.left = menuAberto ? "260px" : "20px";
+    });
+  </script>
+
+  <!-- FIREBASE + PRODUTOS -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA15RX-3DviEIjY65eZwtHU5xFKmEgEyw4",
+      authDomain: "cyberplaythings-data.firebaseapp.com",
+      projectId: "cyberplaythings-data",
+      storageBucket: "cyberplaythings-data.firebasestorage.app",
+      messagingSenderId: "516452911591",
+      appId: "1:516452911591:web:ab20aef1a5e8701b681542"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const container = document.getElementById("produtosContainer");
+
+    const querySnapshot = await getDocs(collection(db, "produtos"));
+    if (querySnapshot.empty) {
+      container.innerHTML = "<p style='text-align:center;'>Nenhum produto 18+ encontrado.</p>";
+    } else {
+      querySnapshot.forEach((docSnap) => {
+        const produto = docSnap.data();
+        const id = docSnap.id;
+
+        if (produto.mais18 === true) {
+          const card = document.createElement("div");
+          card.classList.add("produto-card");
+
+          card.innerHTML = `
+            <a href="produto.html?id=${id}">
+              <img src="${produto.imagem || 'placeholder.jpg'}" alt="${produto.nome}">
+            </a>
+            <h3>${produto.nome}</h3>
+            <div class="caixa-interativa">
+              <div class="controle-quantidade">
+                <button class="btn-menos" onclick="alterarQuantidade(this, -1)">−</button>
+                <span class="quantidade">1</span>
+                <button class="btn-mais" onclick="alterarQuantidade(this, 1)">+</button>
+              </div>
+              <button class="btn-adicionar" onclick="adicionarCarrinhoDireto('${id}', this)">🛒 Adicionar</button>
+            </div>
+          `;
+
+          container.appendChild(card);
+        }
+      });
+    }
+
+    window.alterarQuantidade = function (elemento, delta) {
+      const span = elemento.parentNode.querySelector(".quantidade");
+      let valor = parseInt(span.textContent);
+      valor = Math.max(1, valor + delta);
+      span.textContent = valor;
+    };
+
+    window.adicionarCarrinhoDireto = function (id, botao) {
+      const quantidade = parseInt(botao.parentNode.querySelector(".quantidade").textContent);
+      const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+      const existente = carrinho.find(item => item.id === id);
+
+      if (existente) {
+        existente.quantidade += quantidade;
+      } else {
+        carrinho.push({ id, quantidade });
+      }
+
+      localStorage.setItem("carrinho", JSON.stringify(carrinho));
+      alert("Adicionado ao carrinho!");
+    };
+  </script>
+
+  <script>
+    function fecharAviso18() {
+      document.getElementById("aviso18").style.display = "none";
+    }
+  </script>
+
+</body>
+</html>

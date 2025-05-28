@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Detalhes do Produto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/menu.css" />
+  <link rel="stylesheet" href="css/botoes.css" />
+</head>
+<body>
+
+  <!-- MENU -->
+  <nav class="menu-opcoes" id="menuLateral">
+    <a href="index.html">🏠 Início</a>
+    <a href="pelucias.html">🧸 Pelúcias</a>
+    <a href="figures.html">🎎 Figures</a>
+    <a href="tech.html">🖥️ Tech</a>
+    <a href="hottoys.html">🔥 Hot Toys</a>
+    <a href="cosplay.html">🎭 Cosplay</a>
+    <a href="carrinho.html">🛒 Carrinho</a>
+    <a href="login.html">👤 Perfil</a>
+  </nav>
+
+  <button id="menuToggle">☰</button>
+  <div id="botaoCarrinho"></div>
+  <div id="botao-perfil"></div>
+  <div id="topoSite"></div>
+
+  <script>
+    fetch("components/header.html").then(res => res.text()).then(html => {
+      document.getElementById("topoSite").innerHTML = html;
+    });
+
+    fetch("components/botao-carrinho.html").then(res => res.text()).then(html => {
+      document.getElementById("botaoCarrinho").innerHTML = html;
+    });
+
+    fetch("components/botao-perfil.html").then(res => res.text()).then(html => {
+      document.getElementById("botao-perfil").innerHTML = html;
+    });
+  </script>
+
+  <main class="conteudo" id="conteudoSite" style="padding: 120px 20px 40px;">
+    <div class="container" id="produto-container" style="max-width: 800px; margin: auto; background: #1a1a1a; padding: 30px; border-radius: 12px;">
+      <!-- Produto será carregado aqui -->
+    </div>
+  </main>
+
+  <!-- MENU SCRIPT -->
+  <script>
+    const menuToggle = document.getElementById("menuToggle");
+    const menuLateral = document.getElementById("menuLateral");
+    const conteudo = document.getElementById("conteudoSite");
+    let menuAberto = false;
+
+    menuToggle.addEventListener("click", () => {
+      menuAberto = !menuAberto;
+      menuLateral.classList.toggle("mostrar", menuAberto);
+      menuToggle.innerHTML = menuAberto ? "✖" : "☰";
+      conteudo.style.filter = menuAberto ? "blur(2px)" : "none";
+      menuToggle.style.left = menuAberto ? "260px" : "20px";
+    });
+  </script>
+
+  <!-- FIREBASE + PRODUTO -->
+  <script type="module">
+    import { app } from "./js/firebase-config.js";
+    import {
+      getFirestore, doc, getDoc, setDoc
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const container = document.getElementById("produto-container");
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+
+    let usuarioUID = null;
+    let produto = null;
+
+    if (!id) {
+      container.innerHTML = "<p>❌ Produto não encontrado.</p>";
+      throw new Error("ID do produto ausente");
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) usuarioUID = user.uid;
+
+      const ref = doc(db, "produtos", id);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        container.innerHTML = "<p>❌ Produto não encontrado no banco de dados.</p>";
+        return;
+      }
+
+      produto = snap.data();
+
+      container.innerHTML = `
+        <img src="${produto.imagem}" alt="${produto.nome}" style="width:100%; border-radius:12px;">
+        <h1 style="color: #4db8ff;">${produto.nome}</h1>
+        <div style="color: #ff9800; font-weight: bold;">R$ ${produto.preco.toFixed(2)}</div>
+        <p style="margin: 15px 0;">${(produto.descricao || []).join("<br>")}</p>
+
+        <div class="quantidade" style="display:flex;align-items:center;gap:10px;margin-top:20px;">
+          <button onclick="alterarQtd(-1)">−</button>
+          <span id="qtd">1</span>
+          <button onclick="alterarQtd(1)">+</button>
+        </div>
+
+        <button class="adicionar" onclick="adicionarAoCarrinho()" style="margin-top:20px;">🛒 Adicionar ao Carrinho</button>
+      `;
+    });
+
+    window.alterarQtd = (delta) => {
+      const span = document.getElementById("qtd");
+      let qtd = parseInt(span.textContent);
+      span.textContent = Math.max(1, qtd + delta);
+    };
+
+    window.adicionarAoCarrinho = async () => {
+      const qtd = parseInt(document.getElementById("qtd").textContent);
+
+      if (usuarioUID) {
+        const carrinhoRef = doc(db, "carrinhos", usuarioUID);
+        const snap = await getDoc(carrinhoRef);
+        let dados = snap.exists() ? snap.data() : {};
+        dados[id] = (dados[id] || 0) + qtd;
+        await setDoc(carrinhoRef, dados);
+      } else {
+        let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+        const existente = carrinho.find(item => item.id === id);
+        if (existente) {
+          existente.quantidade += qtd;
+        } else {
+          carrinho.push({ id, quantidade: qtd });
+        }
+        localStorage.setItem("carrinho", JSON.stringify(carrinho));
+      }
+
+      alert("✅ Produto adicionado ao carrinho!");
+      atualizarContadorCarrinho();
+    };
+
+    window.atualizarContadorCarrinho = () => {
+      const icone = document.querySelector(".contador-carrinho");
+      let total = 0;
+      const local = JSON.parse(localStorage.getItem("carrinho")) || [];
+      local.forEach(p => total += p.quantidade);
+      if (icone) icone.textContent = total > 0 ? total : "";
+    };
+  </script>
+
+</body>
+</html>

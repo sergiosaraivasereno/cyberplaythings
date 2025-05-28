@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Todos os Produtos</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+
+    h1 {
+      text-align: center;
+      padding: 20px;
+      background: #1a1a1a;
+      margin: 0;
+    }
+
+    .catalogo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      padding: 30px;
+    }
+
+    .produto {
+      background-color: #222;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .produto img {
+      max-width: 100%;
+      height: 150px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+
+    .produto h3 {
+      margin: 10px 0;
+    }
+
+    .produto .preco {
+      color: #ff9800;
+      font-weight: bold;
+    }
+
+    .produto button {
+      margin-top: 10px;
+      background: #ff9800;
+      color: black;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .produto button:hover {
+      background: #ffc107;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Todos os Produtos</h1>
+  <section class="catalogo" id="catalogo"></section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import { adicionarAoCarrinho } from "./script.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA15RX-3DviEIjY65eZwtHU5xFKmEgEyw4",
+      authDomain: "cyberplaythings-data.firebaseapp.com",
+      projectId: "cyberplaythings-data",
+      storageBucket: "cyberplaythings-data.firebasestorage.app",
+      messagingSenderId: "516452911591",
+      appId: "1:516452911591:web:ab20aef1a5e8701b681542"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const catalogo = document.getElementById("catalogo");
+
+    async function carregarProdutos() {
+      const querySnapshot = await getDocs(collection(db, "produtos"));
+      querySnapshot.forEach((docSnap) => {
+        const produto = docSnap.data();
+        const id = docSnap.id;
+
+        const div = document.createElement("div");
+        div.className = "produto";
+
+        div.innerHTML = `
+          <img src="${produto.imagem}" alt="${produto.nome}">
+          <h3>${produto.nome}</h3>
+          <p class="preco">R$ ${produto.preco.toFixed(2)}</p>
+          <button onclick="adicionarAoCarrinho('${id}', 1)">Adicionar ao Carrinho</button>
+        `;
+
+        catalogo.appendChild(div);
+      });
+    }
+
+    carregarProdutos();
+
+    // Tornar a função acessível no escopo global (para o botão funcionar)
+    window.adicionarAoCarrinho = adicionarAoCarrinho;
+  </script>
+
+<script type="module" src="js/perfil.js"></script>
+</body>
+</html>

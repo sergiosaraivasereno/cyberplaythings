@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Pedidos</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #4db8ff;
+    }
+
+    .pedido {
+      background: #1a1a1a;
+      padding: 25px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 10px rgba(0, 191, 255, 0.2);
+    }
+
+    .pedido h3 {
+      color: #4db8ff;
+      margin-bottom: 10px;
+    }
+
+    .pedido small {
+      color: #aaa;
+      font-size: 12px;
+    }
+
+    .itens {
+      margin-top: 10px;
+      padding-left: 20px;
+    }
+
+    .itens li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📦 Pedidos Realizados</h1>
+
+  <section id="lista-pedidos">
+    <!-- Pedidos aparecerão aqui -->
+  </section>
+
+  <script type="module">
+    import { app } from "./js/firebase-config.js";
+    import {
+      getFirestore, collection, getDocs
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const lista = document.getElementById("lista-pedidos");
+
+    onAuthStateChanged(auth, async (usuario) => {
+      if (!usuario || usuario.email !== "sergiosaraivasereno@gmail.com") {
+        alert("Acesso negado. Apenas o administrador pode visualizar pedidos.");
+        location.href = "index.html";
+        return;
+      }
+      carregarPedidos();
+    });
+
+    async function carregarPedidos() {
+      lista.innerHTML = "";
+      const snap = await getDocs(collection(db, "pedidos"));
+
+      snap.forEach(doc => {
+        const p = doc.data();
+        const data = new Date(p.data).toLocaleString("pt-BR");
+
+        const div = document.createElement("div");
+        div.className = "pedido";
+
+        div.innerHTML = `
+          <h3>🧑 ${p.cliente.nome}</h3>
+          <small>📧 ${p.cliente.email} | 📍 ${p.cliente.endereco}</small><br>
+          <small>🕒 ${data}</small>
+          <ul class="itens">
+            ${p.itens.map(item => `
+              <li>${item.nome} — R$ ${item.preco.toFixed(2)}</li>
+            `).join("")}
+          </ul>
+        `;
+
+        lista.appendChild(div);
+      });
+    }
+  </script>
+
+</body>
+</html>
+    

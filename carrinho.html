@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Carrinho - CyberPlayThings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/menu.css" />
+  <link rel="stylesheet" href="css/botoes.css" />
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4db8ff;
+      margin-bottom: 20px;
+    }
+
+    .item {
+      background-color: #1f1f1f;
+      padding: 15px;
+      margin: 10px auto;
+      border-radius: 12px;
+      display: flex;
+      gap: 15px;
+      max-width: 700px;
+      align-items: center;
+    }
+
+    .item img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+
+    .info {
+      flex-grow: 1;
+    }
+
+    .preco {
+      color: #ffcc00;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .btn {
+      background-color: #ff66c4;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px;
+      box-shadow: 0 0 10px rgba(255, 105, 180, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #ff85d4;
+    }
+
+    .total {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 30px;
+      font-weight: bold;
+      color: #00e676;
+    }
+
+    .quantidade-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .quantidade-controls button {
+      background-color: #555;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .quantidade-controls span {
+      min-width: 24px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- MENU LATERAL -->
+  <nav class="menu-opcoes" id="menuLateral">
+    <a href="index.html">🏠 Início</a>
+    <a href="pelucias.html">🧸 Pelúcias</a>
+    <a href="figures.html">🎎 Figures</a>
+    <a href="tech.html">🖥️ Tech</a>
+    <a href="hottoys.html">🔥 Hot Toys</a>
+    <a href="cosplay.html">🎭 Cosplay</a>
+    <a href="carrinho.html">🛒 Carrinho</a>
+    <a href="login.html">👤 Perfil</a>
+  </nav>
+
+  <!-- BOTÃO MENU -->
+  <button id="menuToggle" aria-label="Abrir menu" title="Menu">☰</button>
+
+  <!-- TOPO DO SITE -->
+  <div id="botao-perfil"></div>
+  <div id="topoSite"></div>
+
+  <script>
+    fetch("components/botao-perfil.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("botao-perfil").innerHTML = html;
+      });
+
+    fetch("components/header.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("topoSite").innerHTML = html;
+      });
+  </script>
+
+  <h1>🛒 Seu Carrinho</h1>
+  <div id="areaUsuario" style="text-align: center; margin-bottom: 20px;"></div>
+  <main id="carrinho-container"></main>
+  <div class="total">Total: R$ <span id="total-geral">0.00</span></div>
+  <div style="text-align:center;">
+    <button class="btn" onclick="window.location.href='index.html'">🌟 Continuar Explorando</button>
+    <button class="btn" onclick="finalizar()">🚀 Finalizar Pedido</button>
+    <button class="btn" onclick="limparCarrinho()">🗑️ Limpar Carrinho</button>
+  </div>
+
+  <!-- SCRIPT MENU -->
+  <script>
+    const menuToggle = document.getElementById("menuToggle");
+    const menuLateral = document.getElementById("menuLateral");
+    const conteudo = document.getElementById("carrinho-container");
+
+    let menuAberto = false;
+
+    menuToggle.addEventListener("click", () => {
+      menuAberto = !menuAberto;
+      menuLateral.classList.toggle("mostrar", menuAberto);
+      menuToggle.innerHTML = menuAberto ? "✖" : "☰";
+      conteudo.style.filter = menuAberto ? "blur(2px)" : "none";
+      menuToggle.style.left = menuAberto ? "260px" : "20px";
+    });
+  </script>
+
+  <!-- SCRIPT CARRINHO -->
+  <script type="module">
+    import { app } from "./js/firebase-config.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, updateDoc, deleteDoc
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const container = document.getElementById("carrinho-container");
+    const totalGeralEl = document.getElementById("total-geral");
+    let carrinhoDados = {};
+    let refCarrinho;
+
+    onAuthStateChanged(auth, async (user) => {
+      const area = document.getElementById("areaUsuario");
+
+      if (!user) {
+        area.innerHTML = `<button class="btn" onclick="location.href='login.html'">👤 Fazer login para finalizar</button>`;
+        container.innerHTML = "<p style='text-align:center;'>Você precisa estar logado para ver o carrinho.</p>";
+        return;
+      }
+
+      area.innerHTML = `<p>Olá, <strong>${user.email}</strong></p>`;
+      refCarrinho = doc(db, "carrinhos", user.uid);
+      const snap = await getDoc(refCarrinho);
+
+      if (!snap.exists()) {
+        container.innerHTML = "<p style='text-align:center;'>Seu carrinho está vazio.</p>";
+        return;
+      }
+
+      carrinhoDados = snap.data();
+      await carregarCarrinho();
+    });
+
+    async function carregarCarrinho() {
+      container.innerHTML = "";
+      let total = 0;
+
+      for (const [produtoId, qtd] of Object.entries(carrinhoDados)) {
+        const snap = await getDoc(doc(db, "produtos", produtoId));
+        if (snap.exists()) {
+          const prod = snap.data();
+          const subtotal = prod.preco * qtd;
+          total += subtotal;
+
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `
+            <img src="${prod.imagemPrincipal}" alt="${prod.nome}">
+            <div class="info">
+              <h3>${prod.nome}</h3>
+              <p>Marca: ${prod.marca || "-"}</p>
+              <div class="quantidade-controls">
+                <button onclick="alterarQuantidade('${produtoId}', -1)">−</button>
+                <span>${qtd}</span>
+                <button onclick="alterarQuantidade('${produtoId}', 1)">+</button>
+              </div>
+              <div class="preco">R$ ${prod.preco.toFixed(2)} x ${qtd} = <strong>R$ ${subtotal.toFixed(2)}</strong></div>
+            </div>
+          `;
+          container.appendChild(div);
+        }
+      }
+
+      totalGeralEl.textContent = total.toFixed(2);
+    }
+
+    window.alterarQuantidade = async (produtoId, delta) => {
+      if (!carrinhoDados[produtoId]) return;
+      carrinhoDados[produtoId] += delta;
+      if (carrinhoDados[produtoId] <= 0) {
+        delete carrinhoDados[produtoId];
+      }
+      await updateDoc(refCarrinho, carrinhoDados);
+      carregarCarrinho();
+    }
+
+    window.limparCarrinho = async () => {
+      if (confirm("Tem certeza que deseja limpar o carrinho?")) {
+        await deleteDoc(refCarrinho);
+        carrinhoDados = {};
+        carregarCarrinho();
+      }
+    }
+
+    window.finalizar = () => {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Você precisa estar logado.");
+        window.location.href = "login.html";
+      } else {
+        window.location.href = "finalizar.html";
+      }
+    }
+  </script>
+</body>
+</html>

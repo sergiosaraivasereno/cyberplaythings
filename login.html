@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - CyberPlayThings</title>
+  <style>
+    body {
+      background-color: #fff5fb;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #ff69b4;
+    }
+
+    form {
+      max-width: 400px;
+      margin: auto;
+      background: #ffeaf5;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #d63384;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #ff69b4;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #ff85c1;
+    }
+
+    .msg {
+      text-align: center;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    .link-recuperar {
+      display: block;
+      text-align: center;
+      margin-top: 10px;
+      color: #555;
+      font-size: 14px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Login</h1>
+
+  <form id="form-login">
+    <label>Email:</label>
+    <input type="email" name="email" required>
+
+    <label>Senha:</label>
+    <input type="password" name="senha" required>
+
+    <button type="submit">Entrar</button>
+
+    <span class="link-recuperar" onclick="esqueciSenha()">Esqueci minha senha</span>
+
+    <div class="msg" id="mensagem"></div>
+  </form>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    import { app } from './js/firebase-config.js';
+
+    const auth = getAuth(app);
+
+    const form = document.getElementById("form-login");
+    const msg = document.getElementById("mensagem");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = form.email.value.trim();
+      const senha = form.senha.value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, senha);
+        msg.textContent = "✅ Login realizado com sucesso!";
+        msg.style.color = "green";
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1000);
+      } catch (erro) {
+        msg.textContent = "❌ Erro: " + erro.message;
+        msg.style.color = "red";
+      }
+    });
+
+    window.esqueciSenha = () => {
+      const email = document.querySelector('input[name="email"]').value.trim();
+
+      if (!email) {
+        alert("Digite seu e-mail antes de recuperar a senha.");
+        return;
+      }
+
+      sendPasswordResetEmail(auth, email)
+        .then(() => alert("📧 Link de redefinição enviado para seu e-mail!"))
+        .catch((erro) => alert("Erro ao enviar link: " + erro.message));
+    };
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <title>Cadastro de Produtos</title>
+  <style>
+    body {
+      background-color: #fff5fb;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      color: #333;
+      padding: 30px;
+    }
+    h1 {
+      text-align: center;
+      color: #ff69b4;
+      margin-bottom: 30px;
+    }
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: #ffeaf5;
+      padding: 30px;
+      border-radius: 25px;
+      box-shadow: 0 0 15px rgba(255, 105, 180, 0.3);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #d63384;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      border: 2px solid #ffb6c1;
+      background-color: #fff;
+      font-size: 14px;
+    }
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 10px;
+    }
+    button {
+      background-color: #ff69b4;
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+      box-shadow: 0 5px #d94f8a;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #ff85c1;
+    }
+    .preview-multiplas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .preview-multiplas img {
+      height: 100px;
+      border-radius: 10px;
+      border: 2px dashed #ffb6c1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Adicionar Produto</h1>
+  <form id="form-produto">
+    <label>Nome do Produto:</label>
+    <input name="nome" required type="text"/>
+
+    <label>Categoria:</label>
+    <select id="categoriaSelect" name="categoria" required></select>
+    <input id="novaCategoria" placeholder="Ou digite nova categoria" type="text"/>
+
+    <label>
+      <input name="restrito18" type="checkbox"/> Produto +18 🔞
+    </label>
+
+    <label>Marca:</label>
+    <select id="marcaSelect" name="marca"></select>
+    <input id="novaMarca" placeholder="Ou digite nova marca" type="text"/>
+
+    <label>Tamanho:</label>
+    <input name="tamanho" placeholder="Ex: 20cm" type="text"/>
+
+    <label>Peso:</label>
+    <input name="peso" placeholder="Ex: 350g" type="text"/>
+
+    <label>Descrição Geral:</label>
+    <textarea name="descricao" placeholder="Descreva o produto com carinho" rows="3"></textarea>
+
+    <label>Tags (separadas por vírgula):</label>
+    <input name="tags" placeholder="Ex: figure, rosa, hatsune, boneca" type="text"/>
+
+    <label>Imagens do Produto (máx. 5):</label>
+    <input accept="image/*" id="inputImagens" multiple name="imagens" required type="file"/>
+    <div class="preview-multiplas" id="previewImagens"></div>
+
+    <label>Valor (R$):</label>
+    <input name="preco" required step="0.01" type="number"/>
+
+    <button type="submit">Adicionar Produto</button>
+  </form>
+
+  <script>
+    const categoriasFixas = ["figures", "pelucias", "hottoys", "cosplay", "moda-anjo", "moda-diabo", "tech", "mais18"];
+    const marcasFixas = ["Hasbro", "Bandai", "Mattel", "Funko", "Sony", "Nintendo", "Microsoft", "Logitech", "Razer"];
+
+    const categoriaSelect = document.getElementById("categoriaSelect");
+    const novaCategoria = document.getElementById("novaCategoria");
+    const marcaSelect = document.getElementById("marcaSelect");
+    const novaMarca = document.getElementById("novaMarca");
+
+    function carregarLista(selectEl, inputEl, chave, fixos) {
+      const salvos = JSON.parse(localStorage.getItem(chave)) || [];
+      const listaFinal = [...new Set([...fixos, ...salvos])];
+      selectEl.innerHTML = `<option value="">Selecione</option>` + listaFinal.map(v => `<option value="${v}">${v}</option>`).join("");
+      inputEl.addEventListener("change", () => {
+        const novo = inputEl.value.trim().toLowerCase();
+        if (novo && !salvos.includes(novo)) {
+          salvos.push(novo);
+          localStorage.setItem(chave, JSON.stringify(salvos));
+          carregarLista(selectEl, inputEl, chave, fixos);
+        }
+      });
+    }
+
+    carregarLista(categoriaSelect, novaCategoria, "categoriasExtras", categoriasFixas);
+    carregarLista(marcaSelect, novaMarca, "marcasExtras", marcasFixas);
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+
+    import { app } from "./js/firebase-config.js";
+
+    const db = getFirestore(app);
+
+    const form = document.getElementById("form-produto");
+    const inputImagens = document.getElementById("inputImagens");
+    const previewImagens = document.getElementById("previewImagens");
+
+    let imagensBase64 = [];
+
+    inputImagens.addEventListener("change", () => {
+      const arquivos = [...inputImagens.files].slice(0, 5);
+      imagensBase64 = [];
+      previewImagens.innerHTML = "";
+
+      arquivos.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          imagensBase64.push(reader.result);
+          const img = document.createElement("img");
+          img.src = reader.result;
+          previewImagens.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (imagensBase64.length === 0) {
+        alert("Adicione ao menos uma imagem!");
+        return;
+      }
+
+      const produto = {
+        nome: form.nome.value,
+        categoria: categoriaSelect.value || novaCategoria.value.trim().toLowerCase(),
+        restrito18: form.restrito18.checked,
+        marca: marcaSelect.value || novaMarca.value.trim(),
+        tamanho: form.tamanho.value,
+        peso: form.peso.value,
+        descricao: [form.descricao.value],
+        preco: parseFloat(form.preco.value),
+        imagens: imagensBase64,
+        tags: form.tags.value.split(',').map(t => t.trim().toLowerCase()).filter(Boolean),
+        criadoEm: new Date().toISOString()
+      };
+
+      try {
+        await addDoc(collection(db, "produtos"), produto);
+        alert("✅ Produto cadastrado com sucesso!");
+        form.reset();
+        previewImagens.innerHTML = "";
+        imagensBase64 = [];
+      } catch (error) {
+        console.error("Erro ao salvar:", error);
+        alert("❌ Falha ao salvar produto.");
+      }
+    });
+  </script>
+</body>
+</html>

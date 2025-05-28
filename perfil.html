@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Seu Perfil - CyberPlayThings</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .perfil-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #1f1f1f;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      text-align: center;
+      color: #00e676;
+      margin-bottom: 20px;
+    }
+
+    .usuario-info {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .secao {
+      margin-bottom: 40px;
+    }
+
+    .secao h2 {
+      color: #4db8ff;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
+      margin-bottom: 15px;
+    }
+
+    .secao ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .secao li {
+      background: #2c2c2c;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .botoes {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .botoes button {
+      background-color: #ff66c4;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px;
+      box-shadow: 0 0 10px rgba(255, 105, 180, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .botoes button:hover {
+      background-color: #ff85d4;
+    }
+  </style>
+</head>
+<body>
+  <div class="perfil-container">
+    <h1>🎉 Bem-vindo, <span id="nomeUsuario">Usuário</span></h1>
+
+    <div class="usuario-info">
+      <p>Email: <span id="emailUsuario">exemplo@email.com</span></p>
+      <p>Nome de usuário: <span id="userUsername">@usuario</span></p>
+    </div>
+
+    <div class="secao">
+      <h2>⭐ Lista de Desejos</h2>
+      <ul id="listaDesejos">
+        <li>Figura Hatsune Miku</li>
+        <li>Teclado Mecânico RGB</li>
+        <!-- Carregar dinamicamente -->
+      </ul>
+    </div>
+
+    <div class="secao">
+      <h2>📦 Endereços Cadastrados</h2>
+      <ul id="listaEnderecos">
+        <li>Rua 123, Sobradinho - DF</li>
+        <!-- Carregar dinamicamente -->
+      </ul>
+      <button onclick="editarEndereco()">➕ Adicionar ou Editar Endereço</button>
+    </div>
+
+    <div class="botoes">
+      <button onclick="window.location.href='index.html'">🏠 Voltar para Home</button>
+      <button onclick="logoff()">🚪 Fazer Logoff</button>
+    </div>
+  </div>
+
+  <script>
+    // Colocar aqui a lógica depois com Firebase para preencher os dados
+    function editarEndereco() {
+      alert("Em breve: função para editar ou adicionar endereço.");
+    }
+
+    function logoff() {
+      alert("Em breve: logoff automático pelo Firebase.");
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Admin - CyberPlayThings</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/menu.css" />
+  <link rel="stylesheet" href="css/botoes.css" />
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #4db8ff;
+      margin-bottom: 20px;
+    }
+    .admin-blocos {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    .bloco-opcao {
+      width: 100%;
+      padding: 20px;
+      border-radius: 15px;
+      background-color: #1e1e1e;
+      box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+      text-align: center;
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    .bloco-opcao:hover {
+      transform: scale(1.02);
+      background-color: #232323;
+    }
+    .bloco-opcao h2 {
+      margin: 0;
+      color: #ff66c4;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎛️ Painel de Administração</h1>
+  <div class="admin-blocos">
+    <div class="bloco-opcao" onclick="location.href='cadastro-produtos.html'">
+      <h2>➕ Adicionar Produtos</h2>
+    </div>
+    <div class="bloco-opcao" onclick="location.href='admin-produtos.html'">
+      <h2>🛠️ Editar Produtos</h2>
+    </div>
+    <div class="bloco-opcao" onclick="location.href='admin-carrosseis.html'">
+      <h2>🎠 Gerenciar Carrosséis</h2>
+    </div>
+    <div class="bloco-opcao" onclick="location.href='admin-banners.html'">
+      <h2>🖼️ Gerenciar Banners</h2>
+    </div>
+  </div>
+</body>
+</html>

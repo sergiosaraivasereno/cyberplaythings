@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Finalizar Pedido - CyberPlayThings</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4db8ff;
+      margin-bottom: 20px;
+    }
+
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: none;
+      border-radius: 10px;
+      background-color: #2a2a2a;
+      color: white;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .item {
+      background-color: #1f1f1f;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+
+    .btn {
+      margin-top: 20px;
+      background-color: #4db8ff;
+      color: black;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .total {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 20px;
+      font-weight: bold;
+      color: #00e676;
+    }
+  </style>
+</head>
+<body>
+  <h1>📝 Finalizar Pedido</h1>
+
+  <div id="itens-pedido"></div>
+  <div class="total">Total: R$ <span id="total-geral">0.00</span></div>
+
+  <form id="formulario">
+    <label>Nome Completo:</label>
+    <input type="text" name="nome" required>
+
+    <label>Endereço de Entrega:</label>
+    <textarea name="endereco" rows="3" required></textarea>
+
+    <label>Informações adicionais (opcional):</label>
+    <textarea name="obs" rows="3"></textarea>
+
+    <button class="btn" type="submit">✅ Confirmar Pedido</button>
+  </form>
+
+  <script type="module">
+    import { app } from "./js/firebase-config.js";
+    import {
+      getFirestore, doc, getDoc, deleteDoc, setDoc, collection, addDoc
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const container = document.getElementById("itens-pedido");
+    const totalGeralEl = document.getElementById("total-geral");
+    const form = document.getElementById("formulario");
+
+    let carrinho = {};
+    let produtos = [];
+    let total = 0;
+    let usuarioEmail = "";
+    let usuarioUID = "";
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Você precisa estar logado.");
+        location.href = "login.html";
+        return;
+      }
+
+      usuarioEmail = user.email;
+      usuarioUID = user.uid;
+
+      const snap = await getDoc(doc(db, "carrinhos", usuarioUID));
+      if (!snap.exists()) {
+        container.innerHTML = "<p style='text-align:center;'>Carrinho vazio.</p>";
+        return;
+      }
+
+      carrinho = snap.data();
+      await carregarProdutos();
+    });
+
+    async function carregarProdutos() {
+      total = 0;
+      container.innerHTML = "";
+      produtos = [];
+
+      for (const [id, qtd] of Object.entries(carrinho)) {
+        const snap = await getDoc(doc(db, "produtos", id));
+        if (snap.exists()) {
+          const p = snap.data();
+          produtos.push({
+            id,
+            nome: p.nome,
+            preco: p.preco,
+            quantidade: qtd
+          });
+
+          const subtotal = p.preco * qtd;
+          total += subtotal;
+
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `
+            <strong>${p.nome}</strong><br>
+            Quantidade: ${qtd} <br>
+            Subtotal: R$ ${subtotal.toFixed(2)}
+          `;
+          container.appendChild(div);
+        }
+      }
+
+      totalGeralEl.textContent = total.toFixed(2);
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const dados = new FormData(form);
+
+      const pedido = {
+        cliente: {
+          nome: dados.get("nome"),
+          endereco: dados.get("endereco"),
+          obs: dados.get("obs"),
+          email: usuarioEmail
+        },
+        itens: produtos,
+        total: total,
+        data: new Date().toISOString()
+      };
+
+      await addDoc(collection(db, "pedidos"), pedido);
+      await deleteDoc(doc(db, "carrinhos", usuarioUID));
+      alert("✅ Pedido finalizado com sucesso!");
+      location.href = "pedido-confirmado.html";
+
+    });
+  </script>
+</body>
+</html>

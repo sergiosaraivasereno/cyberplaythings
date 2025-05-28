@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>404 - Página não encontrada</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .imagem-erro {
+      max-width: 300px;
+      margin: 0 auto 30px;
+      animation: flutuar 2s infinite ease-in-out;
+    }
+
+    @keyframes flutuar {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(6px); }
+    }
+
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 15px;
+      color: #ff66c4;
+    }
+
+    p {
+      font-size: 1em;
+      color: #ccc;
+      margin-bottom: 30px;
+    }
+
+    .botao-voltar {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #ff66c4;
+      color: white;
+      text-decoration: none;
+      border-radius: 20px;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .botao-voltar:hover {
+      background-color: #ff85d4;
+    }
+  </style>
+</head>
+<body>
+
+  <img src="imagens/erro-relax.png" alt="Mascote relaxando" class="imagem-erro">
+
+  <h1>Essa parte do site ficou pra amanhã.</h1>
+  <p>Ou depois de amanhã… quem sabe. 😴</p>
+
+  <a href="index.html" class="botao-voltar">Voltar para o início</a>
+
+</body>
+</html>

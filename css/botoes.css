@@ -1,0 +1,44 @@
+.botao-flutuante {
+  position: fixed;
+  top: 20px;
+  right: 70px; /* espaço do lado do carrinho */
+  background-color: #111;
+  border: 2px solid #00ffcc;
+  border-radius: 50%;
+  padding: 8px;
+  z-index: 2001;
+  cursor: pointer;
+  box-shadow: 0 0 10px #00ffcc;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.botao-flutuante img {
+  width: 32px;
+  height: 32px;
+  filter: brightness(1.2);
+}
+
+.botao-flutuante:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px #00ffcc;
+}
+#iconePerfil {
+  position: fixed;
+  top: 22px;
+  right: 140px;
+  font-size: 24px;
+  text-decoration: none;
+  background: #1a1a1a;
+  color: rgb(197, 109, 109);
+  padding: 10px 14px;
+  border-radius: 12px;
+  z-index: 9999; /* <- AQUI É A CHAVE */
+  box-shadow: 0 0 8px rgba(233, 199, 199, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#iconePerfil {
+  z-index: 9999 !important;
+}
+

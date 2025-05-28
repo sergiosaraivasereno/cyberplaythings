@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Banners</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #4db8ff;
+    }
+
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 0 10px rgba(0, 191, 255, 0.4);
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 15px;
+      display: block;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: none;
+    }
+
+    button {
+      background: #4db8ff;
+      color: black;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #00bcd4;
+    }
+
+    .banners {
+      max-width: 900px;
+      margin: 50px auto 0;
+      display: grid;
+      gap: 20px;
+    }
+
+    .banner {
+      background: #1f1f1f;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0, 191, 255, 0.2);
+    }
+
+    .banner img {
+      width: 100%;
+      max-height: 160px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .banner small {
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 Gerenciar Banners</h1>
+
+  <form id="form-banner">
+    <label>Título do Banner:</label>
+    <input type="text" name="titulo" required>
+
+    <label>Link (URL ao clicar):</label>
+    <input type="url" name="link" required>
+
+    <label>Posição:</label>
+    <select name="posicao" required>
+      <option value="">Selecione</option>
+      <option value="topo">Topo</option>
+      <option value="meio">Meio</option>
+      <option value="rodape">Rodapé</option>
+    </select>
+
+    <label>Imagem do Banner:</label>
+    <input type="file" id="inputImagem" accept="image/*" required>
+    <br>
+
+    <button type="submit">Salvar Banner</button>
+  </form>
+
+  <section class="banners" id="lista-banners">
+    <!-- Lista de banners cadastrados -->
+  </section>
+
+  <script type="module">
+    import { app } from "./js/firebase-config.js";
+    import {
+      getFirestore, collection, addDoc, getDocs
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const form = document.getElementById("form-banner");
+    const inputImagem = document.getElementById("inputImagem");
+    const lista = document.getElementById("lista-banners");
+
+    let imagemBase64 = "";
+
+    inputImagem.addEventListener("change", () => {
+      const file = inputImagem.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => imagemBase64 = reader.result;
+        reader.readAsDataURL(file);
+      }
+    });
+
+    onAuthStateChanged(auth, async (usuario) => {
+      if (!usuario || usuario.email !== "sergiosaraivasereno@gmail.com") {
+        alert("Acesso negado. Apenas o administrador pode acessar esta página.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      carregarBanners();
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const titulo = form.titulo.value;
+      const link = form.link.value;
+      const posicao = form.posicao.value;
+
+      if (!imagemBase64) {
+        alert("Envie uma imagem antes de salvar.");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "banners"), {
+          titulo,
+          link,
+          posicao,
+          imagem: imagemBase64,
+          criadoEm: new Date().toISOString()
+        });
+
+        alert("✅ Banner cadastrado com sucesso!");
+        form.reset();
+        imagemBase64 = "";
+        carregarBanners();
+      } catch (err) {
+        console.error("Erro:", err);
+        alert("❌ Falha ao salvar.");
+      }
+    });
+
+    async function carregarBanners() {
+      lista.innerHTML = "";
+      const snap = await getDocs(collection(db, "banners"));
+
+      snap.forEach(doc => {
+        const b = doc.data();
+        const div = document.createElement("div");
+        div.className = "banner";
+
+        div.innerHTML = `
+          <img src="${b.imagem}">
+          <strong>${b.titulo}</strong><br>
+          <a href="${b.link}" target="_blank">${b.link}</a><br>
+          <small>📍 ${b.posicao}</small>
+        `;
+
+        lista.appendChild(div);
+      });
+    }
+  </script>
+
+</body>
+</html>

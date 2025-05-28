@@ -1,0 +1,18 @@
+<main class="conteudo">
+  <h1 style="text-align:center;">🎭 Cosplay</h1>
+  <div id="erroContainer"></div>
+</main>
+
+<script>
+  fetch('components/header.html')
+    .then(res => res.text())
+    .then(data => document.getElementById('header').innerHTML = data);
+</script>
+
+<script>
+  fetch('404.html')
+    .then(res => res.text())
+    .then(data => {
+      document.getElementById('erroContainer').innerHTML = data;
+    });
+</script>

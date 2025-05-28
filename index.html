@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberPlayThings</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/menu.css" />
+  <link rel="stylesheet" href="css/botoes.css" /> 
+</head> 
+<body>
+  <!-- MENU LATERAL -->
+  <nav class="menu-opcoes" id="menuLateral">
+    <a href="index.html">🏠 Início</a>
+    <a href="pelucias.html">🧸 Pelúcias</a>
+    <a href="figures.html">🎎 Figures</a>
+    <a href="tech.html">🖥️ Tech</a>
+    <a href="hottoys.html">🔥 Hot Toys</a>
+    <a href="cosplay.html">🎭 Cosplay</a>
+    <a href="carrinho.html">🛒 Carrinho</a>
+    <a href="login.html">👤 Perfil</a>
+  </nav>
+
+  <!-- BOTÃO MENU FIXO -->
+  <button id="menuToggle" aria-label="Abrir menu" title="Menu">☰</button>
+
+  <!-- COMPONENTES DO TOPO -->
+  <div id="botaoCarrinho"></div>
+  <div id="botao-perfil"></div>
+  <div id="topoSite"></div>
+
+  <!-- CARREGAMENTO DOS COMPONENTES -->
+  <script>
+    fetch("components/botao-carrinho.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("botaoCarrinho").innerHTML = html;
+      });
+
+    fetch("components/botao-perfil.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("botao-perfil").innerHTML = html;
+      });
+
+    fetch("components/header.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("topoSite").innerHTML = html;
+      });
+  </script>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="conteudo" id="conteudoSite">
+    <div id="bloco-categorias"></div>
+    <hr style="border: none; border-top: 1px solid #333; margin: 40px auto; width: 80%;" />
+    <div id="carrossel-hatsune"></div>
+    <hr style="border: none; border-top: 1px solid #333; margin: 40px auto; width: 80%;" />
+    <div id="carrossel-yowu"></div>
+    <hr style="border: none; border-top: 1px solid #333; margin: 40px auto; width: 80%;" />
+    <div id="footer"></div>
+  </div>
+
+  <!-- IMPORTAÇÃO DE CONTEÚDOS -->
+  <script>
+    fetch("components/bloco-categorias.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("bloco-categorias").innerHTML = html;
+      });
+
+    fetch("components/footer.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("footer").innerHTML = html;
+      });
+  </script>
+
+  <!-- SCRIPT MENU -->
+  <script>
+    const menuToggle = document.getElementById("menuToggle");
+    const menuLateral = document.getElementById("menuLateral");
+    const conteudo = document.getElementById("conteudoSite");
+
+    let menuAberto = false;
+
+    menuToggle.addEventListener("click", () => {
+      menuAberto = !menuAberto;
+      menuLateral.classList.toggle("mostrar", menuAberto);
+      menuToggle.innerHTML = menuAberto ? "✖" : "☰";
+      conteudo.style.filter = menuAberto ? "blur(2px)" : "none";
+      menuToggle.style.left = menuAberto ? "260px" : "20px";
+    });
+  </script>
+
+  <!-- SCRIPTS MÓDULOS -->
+  <script type="module" src="js/carrosseis.js"></script>
+  <script type="module" src="js/perfil.js"></script>
+  <script src="js/global.js"></script>
+</body>
+</html>
