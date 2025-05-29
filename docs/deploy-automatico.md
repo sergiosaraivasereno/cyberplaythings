@@ -1,6 +1,6 @@
 # 🚀 Deploy Automático Firebase Hosting + GitHub + CodeSandbox
 
-**Desenvolvido por:** Sérgio Saraiva Sereno  
+**Desenvolvido por:** Sérgio Saraiva Sereno  ><
 **Projeto:** CyberPlayThings  
 **Domínio:** [https://cyberplaythings.com](https://cyberplaythings.com)  
 
